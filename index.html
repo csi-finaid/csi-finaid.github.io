@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAP/SAP Eligibility Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f0efe9;
+    --border: #e0dfd8; --border2: #cccbc3;
+    --text: #1a1a18; --text2: #6b6b63; --text3: #9e9e94;
+    --accent: #1a4f3a; --accent-bg: #e8f2ed; --accent-text: #1a4f3a;
+    --info-bg: #e8eef8; --info-text: #1a3a6b;
+    --success-bg: #e8f5ec; --success-text: #1a5c2e;
+    --danger-bg: #fdecea; --danger-text: #7a1a1a;
+    --radius: 10px; --radius-sm: 7px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  /* Header */
+  header { background: var(--accent); color: #fff; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: relative; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  header .logo { width: 34px; height: 34px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: #fff; letter-spacing: -0.5px; flex-shrink: 0; }
+  header h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+  header p { font-size: 11px; opacity: 0.65; margin-top: 1px; }
+
+  /* Hamburger */
+  .menu-btn { width: 38px; height: 38px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: background .15s; flex-shrink: 0; }
+  .menu-btn:hover { background: rgba(255,255,255,0.22); }
+  .menu-btn span { display: block; width: 16px; height: 2px; background: #fff; border-radius: 2px; transition: all .2s; }
+  .menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .menu-btn.open span:nth-child(2) { opacity: 0; }
+  .menu-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .nav-dropdown { position: absolute; top: 60px; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 220px; display: none; flex-direction: column; overflow: hidden; z-index: 200; }
+  .nav-dropdown.open { display: flex; }
+  .nav-item { padding: 13px 18px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; text-align: left; transition: background .1s, color .1s; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .nav-item:last-child { border-bottom: none; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { color: var(--accent); font-weight: 600; background: var(--accent-bg); }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  /* Layout */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  body { overflow-x: hidden; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+  .card-highlight { background: var(--surface); border: 2px solid var(--accent); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+
+  /* Form */
+  .q-label { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+  .q-sub { font-size: 13px; color: var(--text2); margin-bottom: 10px; line-height: 1.6; }
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .radio-btn { padding: 8px 16px; border: 1px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text); background: var(--surface2); font-family: 'DM Sans', sans-serif; transition: all .12s; white-space: nowrap; }
+  .radio-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .radio-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .fast-btn { padding: 10px 18px; border: 1px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text); background: var(--surface2); font-family: 'DM Sans', sans-serif; transition: all .12s; text-align: left; line-height: 1.5; }
+  .fast-btn:hover { border-color: var(--accent); }
+  .fast-btn.selected { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-text); }
+  .fast-btn .sub { font-size: 11px; color: var(--text3); font-weight: 400; display: block; margin-top: 2px; }
+  .fast-btn.selected .sub { color: var(--accent-text); opacity: 0.7; }
+  .fast-btn.dim { opacity: 0.4; pointer-events: none; }
+  .chart-tag { display: inline-block; background: var(--info-bg); color: var(--info-text); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 5px; font-family: 'DM Mono', monospace; }
+  .badge-success { display: inline-block; background: var(--success-bg); color: var(--success-text); font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 5px; }
+  .row-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 8px; }
+  .pay-grid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 6px; }
+  .pay-btn { padding: 7px 6px; border: 1px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text); background: var(--surface2); font-family: 'DM Sans', sans-serif; text-align: center; line-height: 1.3; transition: all .12s; }
+  .pay-btn:hover { border-color: var(--accent); }
+  .pay-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pay-btn .pts { display: block; font-size: 10px; color: var(--text3); font-weight: 400; margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .pay-btn.selected .pts { color: rgba(255,255,255,0.65); }
+  .metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+  .metric { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; text-align: center; }
+  .metric-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); margin-bottom: 6px; }
+  .metric-val { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; }
+  .metric-unit { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .or-div { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+  .or-div span { font-size: 12px; color: var(--text3); white-space: nowrap; }
+  .or-div::before, .or-div::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .pts-row { display: flex; gap: 8px; align-items: flex-end; }
+  .pts-row label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 5px; }
+  .pts-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--surface); color: var(--text); outline: none; }
+  .pts-row input:focus { border-color: var(--accent); }
+  .pts-row button { padding: 9px 14px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface2); cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text2); transition: all .12s; }
+  .pts-row button:hover { border-color: var(--accent); color: var(--accent); }
+  .applies-note { font-size: 12px; color: var(--text2); margin-bottom: 1rem; line-height: 1.5; }
+  .pts-note { font-size: 12px; color: var(--text3); margin-top: 8px; font-family: 'DM Mono', monospace; }
+  .q-block { margin-bottom: 1.25rem; }
+  .q-block:last-child { margin-bottom: 0; }
+
+  /* Quick Lookup table view */
+  .ql-controls { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-end; }
+  .ql-group { display: flex; flex-direction: column; gap: 8px; }
+  .ql-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); }
+  .chart-pill-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .chart-pill { width: 42px; height: 42px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface2); cursor: pointer; font-size: 15px; font-weight: 600; color: var(--text2); font-family: 'DM Sans', sans-serif; display: flex; align-items: center; justify-content: center; transition: all .12s; }
+  .chart-pill:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+  .chart-pill.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tap-toggle { display: flex; border: 1px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden; }
+  .tap-opt { padding: 9px 18px; border: none; background: var(--surface2); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; transition: all .12s; white-space: nowrap; }
+  .tap-opt + .tap-opt { border-left: 1px solid var(--border2); }
+  .tap-opt.selected { background: var(--accent); color: #fff; }
+  .ql-table-wrap { overflow-x: auto; }
+  .ql-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 380px; }
+  .ql-table thead th { background: var(--accent); color: #fff; padding: 10px 12px; text-align: center; font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+  .ql-table thead th:first-child { text-align: left; min-width: 150px; }
+  .ql-table tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: center; font-size: 13px; }
+  .ql-table tbody td:first-child { text-align: left; font-size: 12px; font-weight: 500; color: var(--text2); background: var(--surface2); white-space: nowrap; }
+  .ql-table tbody tr:last-child td { border-bottom: none; }
+  .ql-table tbody tr:hover td { background: var(--accent-bg); }
+  .ql-table tbody tr:hover td:first-child { background: var(--accent-bg); }
+  .ql-pts-sub { font-size: 10px; font-weight: 400; opacity: 0.8; display: block; font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .ql-placeholder { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 3rem 2rem; text-align: center; color: var(--text3); font-size: 14px; }
+  .ql-combo-note { font-size: 12px; color: var(--accent-text); background: var(--accent-bg); border: 1px solid rgba(26,79,58,0.2); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 1rem; }
+
+  /* Editor */
+  .edit-layout { display: grid; grid-template-columns: 170px 1fr; gap: 1.25rem; align-items: start; }
+  .chart-list { display: flex; flex-direction: column; gap: 5px; position: sticky; top: 1rem; }
+  .chart-list-btn { padding: 9px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); font-family: 'DM Sans', sans-serif; text-align: left; transition: all .12s; line-height: 1.4; }
+  .chart-list-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .chart-list-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chart-list-btn .cl-sub { font-size: 10px; font-weight: 400; display: block; margin-top: 1px; opacity: 0.7; }
+  .edit-panel { min-width: 0; }
+  .edit-section-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .edit-section-sub { font-size: 12px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.5; }
+  .edit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .edit-table th { background: var(--surface2); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text2); padding: 8px; border: 1px solid var(--border); text-align: center; }
+  .edit-table th:first-child { text-align: left; padding-left: 10px; }
+  .edit-table td { padding: 4px 5px; border: 1px solid var(--border); text-align: center; vertical-align: middle; }
+  .edit-table td:first-child { text-align: left; padding-left: 10px; font-size: 12px; color: var(--text2); white-space: nowrap; font-weight: 500; background: var(--surface2); }
+  .edit-table input[type=number] { width: 100%; padding: 5px 4px; border: 1px solid var(--border2); border-radius: 5px; font-family: 'DM Mono', monospace; font-size: 13px; text-align: center; background: var(--surface); color: var(--text); outline: none; -moz-appearance: textfield; }
+  .edit-table input[type=number]::-webkit-inner-spin-button { opacity: 0; }
+  .edit-table input[type=number]:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+  .save-bar { display: flex; align-items: center; gap: 10px; margin-top: 1.25rem; flex-wrap: wrap; }
+  .save-btn { padding: 9px 22px; border: none; border-radius: var(--radius-sm); background: var(--accent); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; transition: opacity .12s; }
+  .save-btn:hover { opacity: 0.88; }
+  .reset-btn { padding: 9px 16px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: transparent; color: var(--text2); cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all .12s; }
+  .reset-btn:hover { border-color: var(--danger-text); color: var(--danger-text); }
+  .save-msg { font-size: 13px; color: var(--success-text); font-weight: 500; transition: opacity .3s; opacity: 0; }
+  .save-msg.show { opacity: 1; }
+  .edit-notice { background: var(--accent-bg); border: 1px solid rgba(26,79,58,0.25); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--accent-text); margin-bottom: 1.25rem; line-height: 1.6; }
+  .variant-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 8px; margin-top: 1.25rem; }
+  .variant-label:first-child { margin-top: 0; }
+
+  /* Floating Points Key */
+  .pts-key-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 500; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .pts-key-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.18); display: flex; align-items: center; gap: 7px; transition: opacity .15s, transform .15s; }
+  .pts-key-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .pts-key-popup { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.16); padding: 1rem 1.25rem; min-width: 200px; display: none; font-family: 'DM Sans', sans-serif; }
+  .pts-key-popup.open { display: block; }
+  .pts-key-popup h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 10px; font-family: 'DM Sans', sans-serif; }
+  .pts-key-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 16px; font-family: 'DM Sans', sans-serif; }
+  .pts-key-row:last-child { border-bottom: none; }
+  .pts-key-pay { font-weight: 600; color: var(--text); font-family: 'DM Sans', sans-serif; }
+  .pts-key-range { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text2); }
+
+  /* Customize Panel */
+  .customize-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+  .customize-section { margin-bottom: 1.5rem; }
+  .customize-section:last-child { margin-bottom: 0; }
+  .customize-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .customize-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; gap: 1rem; flex-wrap: wrap; }
+  .customize-label { font-size: 14px; color: var(--text); font-weight: 500; }
+  .customize-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .color-input-wrap { display: flex; align-items: center; gap: 8px; }
+  .color-input-wrap input[type=color] { width: 40px; height: 32px; border: 1px solid var(--border2); border-radius: 6px; cursor: pointer; padding: 2px; background: var(--surface); }
+  .color-input-wrap input[type=text] { width: 80px; padding: 6px 8px; border: 1px solid var(--border2); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); background: var(--surface); }
+  .font-select { padding: 8px 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--surface); color: var(--text); cursor: pointer; }
+  .customize-reset { padding: 8px 16px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: transparent; color: var(--text2); cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all .12s; }
+  .customize-reset:hover { border-color: var(--danger-text); color: var(--danger-text); }
+  .customize-apply { padding: 9px 22px; border: none; border-radius: var(--radius-sm); background: var(--accent); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; }
+
+  @media (max-width: 660px) {
+    header { padding: 0 1rem; }
+    .edit-layout { grid-template-columns: 1fr; }
+    .chart-list { flex-direction: row; flex-wrap: wrap; position: static; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .pay-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .ql-controls { gap: .75rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">TAP</div>
+    <div>
+      <h1>TAP/SAP Eligibility Tool</h1>
+      <p>Financial aid academic progress requirements</p>
+    </div>
+  </div>
+  <button class="menu-btn" id="menu-btn" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-item active" id="nav-lookup" onclick="switchSection('lookup',this)">
+      <span class="nav-icon">&#128269;</span> Quick lookup
+    </button>
+    <button class="nav-item" id="nav-finder" onclick="switchSection('finder',this)">
+      <span class="nav-icon">&#128203;</span> Chart finder
+    </button>
+    <button class="nav-item" id="nav-editor" onclick="switchSection('editor',this)">
+      <span class="nav-icon">&#9998;</span> Edit requirements
+    </button>
+    <button class="nav-item" id="nav-customize" onclick="switchSection('customize',this)">
+      <span class="nav-icon">&#127912;</span> Customize
+    </button>
+  </div>
+</header>
+
+<!-- Floating Points Key -->
+<div class="pts-key-fab">
+  <div class="pts-key-popup" id="pts-key-popup">
+    <h4>Points → Payment Key</h4>
+  </div>
+  <button class="pts-key-btn" onclick="togglePtsKey()">&#128273; Points Key</button>
+</div>
+
+<div class="container">
+
+  <!-- QUICK LOOKUP -->
+  <div id="lookup" class="section active">
+    <div class="ql-controls">
+      <div class="ql-group">
+        <div class="ql-group-label">Chart</div>
+        <div class="chart-pill-row">
+          <button class="chart-pill" onclick="qlPickChart('A',this)">A</button>
+          <button class="chart-pill" onclick="qlPickChart('B',this)">B</button>
+          <button class="chart-pill" onclick="qlPickChart('C',this)">C</button>
+          <button class="chart-pill" onclick="qlPickChart('D',this)">D</button>
+          <button class="chart-pill" onclick="qlPickChart('E',this)">E</button>
+          <button class="chart-pill" onclick="qlPickChart('F',this)">F</button>
+          <button class="chart-pill" onclick="qlPickChart('G',this)">G</button>
+        </div>
+      </div>
+      <div class="ql-group" id="ql-toggle-group">
+        <div class="ql-group-label">TAP type</div>
+        <div class="tap-toggle">
+          <button class="tap-opt selected" onclick="qlPickTap('full',this)">TAP (full-time)</button>
+          <button class="tap-opt" onclick="qlPickTap('part',this)">PTAP (part-time)</button>
+        </div>
+      </div>
+    </div>
+    <div id="ql-result">
+      <div class="ql-placeholder">Select a chart above to view its requirements table.</div>
+    </div>
+  </div>
+
+  <!-- CHART FINDER -->
+  <div id="finder" class="section">
+    <div class="card">
+      <!-- Q1: Degree -->
+      <div class="q-block">
+        <div class="q-label">1. Degree type</div>
+        <div class="btn-group" id="rg-degree">
+          <button class="radio-btn" onclick="pick('degree',&quot;Associate's&quot;,this)">Associate's</button>
+          <button class="radio-btn" onclick="pick('degree',&quot;Bachelor's&quot;,this)">Bachelor's</button>
+        </div>
+      </div>
+      <!-- Q2: Enrollment -->
+      <div class="q-block" id="q2-block" style="display:none">
+        <div class="divider"></div>
+        <div class="q-label">2. Enrollment type</div>
+        <div class="btn-group" id="rg-enroll">
+          <button class="radio-btn" onclick="pick('enroll','full',this)">Full-time TAP (12+ credits)</button>
+          <button class="radio-btn" onclick="pick('enroll','part',this)">Part-time TAP (3–11 credits)</button>
+        </div>
+      </div>
+      <!-- Q3: Accessibility -->
+      <div class="q-block" id="q3-block" style="display:none">
+        <div class="divider"></div>
+        <div class="q-label">3. Are you registered with the Office of Accessibility Services?</div>
+        <div class="q-sub"><em>Students registered with the Office of Accessibility Services are presumed to be disabled as defined by the Americans with Disability Act of 1990 (ADA).</em></div>
+        <div class="btn-group" id="rg-access">
+          <button class="radio-btn" onclick="pick('access','yes',this)">Yes</button>
+          <button class="radio-btn" onclick="pick('access','no',this)">No</button>
+        </div>
+      </div>
+      <!-- Q4: SEEK (only if access=no) -->
+      <div class="q-block" id="q4-block" style="display:none">
+        <div class="divider"></div>
+        <div class="q-label">4. If you meet <u>any</u> of the following, select "Yes":</div>
+        <div class="q-sub">
+          &bull; Are you enrolled in the SEEK program?<br>
+          &bull; Were you required to take remedial courses in at least 2 semesters?<br>
+          &bull; In the term you received your first TAP award, did you take 6 or more remedial credits?
+        </div>
+        <div class="btn-group" id="rg-seek">
+          <button class="radio-btn" onclick="pick('seek','yes',this)">Yes</button>
+          <button class="radio-btn" onclick="pick('seek','no',this)">No</button>
+        </div>
+      </div>
+    </div>
+    <div id="finder-result"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div id="editor" class="section">
+    <div class="card">
+      <div class="edit-notice">
+        &#9998; Edit any cell below and click <strong>Save changes</strong>. Your edits are saved in this browser and will persist next time you open this file on the same computer.
+      </div>
+      <div class="edit-layout">
+        <div class="chart-list" id="edit-chart-list"></div>
+        <div class="edit-panel" id="edit-panel">
+          <p style="font-size:13px;color:var(--text3)">Select a chart from the left to edit its requirements.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMIZE -->
+  <div id="customize" class="section">
+    <div class="customize-panel">
+      <div class="customize-section">
+        <div class="customize-section-title">Colors</div>
+        <div class="customize-row">
+          <div><div class="customize-label">Accent / Header color</div><div class="customize-sub">Used for header, buttons, and highlights</div></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-accent" value="#1a4f3a" oninput="syncColorText('c-accent','ct-accent')">
+            <input type="text" id="ct-accent" value="#1a4f3a" oninput="syncColorPicker('ct-accent','c-accent')">
+          </div>
+        </div>
+        <div class="customize-row">
+          <div><div class="customize-label">Page background</div></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-bg" value="#f5f4f0" oninput="syncColorText('c-bg','ct-bg')">
+            <input type="text" id="ct-bg" value="#f5f4f0" oninput="syncColorPicker('ct-bg','c-bg')">
+          </div>
+        </div>
+        <div class="customize-row">
+          <div><div class="customize-label">Card / Surface color</div></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-surface" value="#ffffff" oninput="syncColorText('c-surface','ct-surface')">
+            <input type="text" id="ct-surface" value="#ffffff" oninput="syncColorPicker('ct-surface','c-surface')">
+          </div>
+        </div>
+        <div class="customize-row">
+          <div><div class="customize-label">Primary text color</div></div>
+          <div class="color-input-wrap">
+            <input type="color" id="c-text" value="#1a1a18" oninput="syncColorText('c-text','ct-text')">
+            <input type="text" id="ct-text" value="#1a1a18" oninput="syncColorPicker('ct-text','c-text')">
+          </div>
+        </div>
+      </div>
+      <div class="customize-section">
+        <div class="customize-section-title">Typography</div>
+        <div class="customize-row">
+          <div><div class="customize-label">Body font</div><div class="customize-sub">Used throughout the page</div></div>
+          <select class="font-select" id="c-font" onchange="applyCustomize()">
+            <option value="'DM Sans', sans-serif">DM Sans (default)</option>
+            <option value="'Georgia', serif">Georgia</option>
+            <option value="'Arial', sans-serif">Arial</option>
+            <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
+            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+            <option value="'Verdana', sans-serif">Verdana</option>
+          </select>
+        </div>
+        <div class="customize-row">
+          <div><div class="customize-label">Base font size</div></div>
+          <select class="font-select" id="c-fontsize" onchange="applyCustomize()">
+            <option value="13px">Small (13px)</option>
+            <option value="15px" selected>Medium (15px, default)</option>
+            <option value="17px">Large (17px)</option>
+          </select>
+        </div>
+      </div>
+      <div class="customize-section">
+        <div class="customize-section-title">Header</div>
+        <div class="customize-row">
+          <div><div class="customize-label">Tool title</div></div>
+          <input type="text" id="c-title" value="TAP/SAP Eligibility Tool" style="flex:1;max-width:280px;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);">
+        </div>
+        <div class="customize-row">
+          <div><div class="customize-label">Subtitle / tagline</div></div>
+          <input type="text" id="c-subtitle" value="Financial aid academic progress requirements" style="flex:1;max-width:280px;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:.5rem">
+        <button class="customize-apply" onclick="applyCustomize()">Apply changes</button>
+        <button class="customize-reset" onclick="resetCustomize()">Reset to defaults</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DEFAULT_CHARTS={A:{applies:"All students who received TAP before AY 2005-2006.",full:{maxPay:10,creditsLastTerm:[0,6,6,9,9,12,12,12,12,12],totalCredits:[0,0,6,18,31,45,60,75,90,105],gpa:[0,0,1.00,1.20,2.00,2.00,2.00,2.00,2.00,2.00]},part:{maxPay:10,creditsLastTerm:[0,1.5,1.5,3,3,3,3,3,3,3],totalCredits:[0,0,6,18,31,45,60,75,90,105],gpa:[0,2.00,2.00,2.00,2.00,2.00,2.00,2.00,2.00,2.00]}},B:{applies:"Bachelor's students in SEEK/Remedial, or first TAP between AY 2006-07 and 2009-10.",full:{maxPay:10,creditsLastTerm:[0,6,6,9,9,12,12,12,12,12],totalCredits:[0,3,9,21,33,45,60,75,90,105],gpa:[0,0,1.00,1.20,2.00,2.00,2.00,2.00,2.00,2.00]},part:{maxPay:10,creditsLastTerm:[0,1.5,1.5,3,3,3,3,3,3,3],totalCredits:[0,3,9,21,33,45,60,75,90,105],gpa:[0,2.00,2.00,2.00,2.00,2.00,2.00,2.00,2.00,2.00]}},C:{applies:"Associate's students in SEEK/Remedial, or first TAP between AY 2006-07 and 2009-10.",full:{maxPay:6,creditsLastTerm:[0,6,6,9,9,12],totalCredits:[0,3,9,18,30,45],gpa:[0,0.50,0.75,1.30,2.00,2.00]},part:{maxPay:6,creditsLastTerm:[0,1.5,1.5,3,3,3],totalCredits:[0,3,9,18,30,45],gpa:[0,2.00,2.00,2.00,2.00,2.00]}},D:{applies:"Bachelor's students, first TAP AY 2010-11 or later, NOT registered with accessibility services.",full:{maxPay:8,creditsLastTerm:[0,6,6,9,9,12,12,12],totalCredits:[0,6,15,27,39,51,66,81],gpa:[0,1.50,1.80,1.80,2.00,2.00,2.00,2.00]},part:{maxPay:8,creditsLastTerm:[0,1.5,1.5,3,3,3,3,3],totalCredits:[0,6,15,27,39,51,66,81],gpa:[0,2.00,2.00,2.00,2.00,2.00,2.00,2.00]}},E:{applies:"Associate's students, first TAP AY 2010-11 or later, NOT registered with accessibility services.",full:{maxPay:6,creditsLastTerm:[0,6,6,9,9,12],totalCredits:[0,6,15,27,39,51],gpa:[0,1.30,1.50,1.80,2.00,2.00]},part:{maxPay:6,creditsLastTerm:[0,1.5,1.5,3,3,3],totalCredits:[0,6,15,27,39,51],gpa:[0,2.00,2.00,2.00,2.00,2.00]}},F:{applies:"Bachelor's students, first TAP AY 2010-11 or later, registered with Office of Accessibility Services. TAP and Part-Time TAP combined.",full:{maxPay:10,pacePercent:[0,50,50,75,75,100,100,100,100,100],totalCredits:[0,3,9,21,33,45,60,75,90,105],gpa:[0,1.5,1.8,1.8,2.0,2.0,2.0,2.0,2.0,2.0]},part:null},G:{applies:"Associate's students, first TAP AY 2010-11 or later, registered with Office of Accessibility Services. TAP and Part-Time TAP combined.",full:{maxPay:8,pacePercent:[0,50,50,75,75,100,100,100],totalCredits:[0,3,9,18,30,42,51,60],gpa:[0,1.3,1.5,1.8,2.0,2.0,2.0,2.0]},part:null}};
+
+function loadCharts(){try{const s=localStorage.getItem('tap_charts_v1');if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(DEFAULT_CHARTS));}
+function saveCharts(){localStorage.setItem('tap_charts_v1',JSON.stringify(CHARTS));}
+let CHARTS=loadCharts();
+
+const PAYMENT_POINTS=[{pay:1,min:0,max:5.5},{pay:2,min:6,max:11.5},{pay:3,min:12,max:17.5},{pay:4,min:18,max:23.5},{pay:5,min:24,max:29.5},{pay:6,min:30,max:35.5},{pay:7,min:36,max:41.5},{pay:8,min:42,max:47.5},{pay:9,min:48,max:53.5},{pay:10,min:54,max:59.5}];
+function pointsToPayment(pts){const p=parseFloat(pts);if(isNaN(p)||p<0)return null;const m=PAYMENT_POINTS.find(r=>p>=r.min&&p<=r.max);return m?m.pay:null;}
+function ptsLabel(pay){const r=PAYMENT_POINTS.find(r=>r.pay===pay);return r?r.min+'-'+r.max:'--';}
+
+/* Menu */
+function toggleMenu(){
+  document.getElementById('menu-btn').classList.toggle('open');
+  document.getElementById('nav-dropdown').classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  const btn=document.getElementById('menu-btn');
+  const dd=document.getElementById('nav-dropdown');
+  if(!btn.contains(e.target)&&!dd.contains(e.target)){btn.classList.remove('open');dd.classList.remove('open');}
+});
+function switchSection(sec,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(sec).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('menu-btn').classList.remove('open');
+  document.getElementById('nav-dropdown').classList.remove('open');
+  if(sec==='editor')renderEditChartList();
+}
+
+function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+
+/* Quick Lookup */
+let qlChart=null,qlTap='full';
+function qlPickChart(k,el){
+  qlChart=k;
+  document.querySelectorAll('.chart-pill').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const isCombo=(k==='F'||k==='G');
+  const tg=document.getElementById('ql-toggle-group');
+  tg.style.opacity=isCombo?'0.4':'1';
+  tg.style.pointerEvents=isCombo?'none':'auto';
+  renderQlTable();
+}
+function qlPickTap(val,el){
+  qlTap=val;
+  document.querySelectorAll('.tap-opt').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  renderQlTable();
+}
+function renderQlTable(){
+  const ra=document.getElementById('ql-result');
+  if(!qlChart){ra.innerHTML='<div class="ql-placeholder">Select a chart above to view its requirements table.</div>';return;}
+  const c=CHARTS[qlChart];
+  const isCombo=(qlChart==='F'||qlChart==='G');
+  const d=isCombo?c.full:(qlTap==='part'&&c.part?c.part:c.full);
+  const hasPace=!!d.pacePercent;
+  const pays=Array.from({length:d.maxPay},(_,i)=>i+1);
+  const tapLabel=isCombo?'TAP & Part-Time TAP (combined)':(qlTap==='full'?'Full-time TAP (12+ credits)':'Part-time TAP (3-11 credits)');
+  const comboNote=isCombo?'<p class="ql-combo-note">Charts F &amp; G use a single combined table for both TAP types.</p>':'';
+  ra.innerHTML='<div class="card" style="padding:1.25rem 1.5rem"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:.5rem"><span class="chart-tag" style="font-size:14px;padding:4px 14px">Chart '+qlChart+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+tapLabel+'</span></div><p class="applies-note">'+c.applies+'</p>'+comboNote+'<div class="ql-table-wrap"><table class="ql-table"><thead><tr><th>Requirement</th>'+pays.map(function(p){return '<th>'+ordinal(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Total credits accrued</td>'+pays.map(function(_,i){return '<td>'+d.totalCredits[i]+'</td>';}).join('')+'</tr><tr><td>Minimum GPA</td>'+pays.map(function(_,i){return '<td>'+(d.gpa[i]===0?'0':d.gpa[i].toFixed(2))+'</td>';}).join('')+'</tr><tr><td>'+(hasPace?'Completion rate':'Credits last term')+'</td>'+pays.map(function(_,i){return '<td>'+(hasPace?d.pacePercent[i]+'%':d.creditsLastTerm[i])+'</td>';}).join('')+'</tr></tbody></table></div></div>';
+}
+
+/* Metrics builder */
+function buildMetrics(i,data,payNum){
+  const hasPace=!!data.pacePercent;
+  const pts=PAYMENT_POINTS.find(function(r){return r.pay===payNum;});
+  return '<div class="metrics"><div class="metric"><div class="metric-label">Total credits accrued</div><div class="metric-val">'+data.totalCredits[i]+'</div><div class="metric-unit">credits</div></div><div class="metric"><div class="metric-label">Minimum GPA</div><div class="metric-val">'+(data.gpa[i]===0?'0':data.gpa[i].toFixed(2))+'</div></div>'+(hasPace?'<div class="metric"><div class="metric-label">Completion rate</div><div class="metric-val">'+data.pacePercent[i]+'%</div><div class="metric-unit">of registered credits</div></div>':'<div class="metric"><div class="metric-label">Credits last term</div><div class="metric-val">'+data.creditsLastTerm[i]+'</div><div class="metric-unit">credits completed</div></div>')+'</div>'+(pts?'<p class="pts-note">'+ordinal(payNum)+' payment = '+pts.min+'-'+pts.max+' points</p>':'');
+}
+
+/* Editor */
+const CHART_LABELS={A:'Chart A',B:'Chart B',C:'Chart C',D:'Chart D',E:'Chart E',F:'Chart F',G:'Chart G'};
+const CHART_SUBS={A:'All / pre-2006',B:'Bach. SEEK / pre-2010',C:'Assoc. SEEK / pre-2010',D:'Bach. 2010+',E:'Assoc. 2010+',F:'Bach. + Accessibility',G:'Assoc. + Accessibility'};
+let editChart=null;
+function renderEditChartList(){
+  document.getElementById('edit-chart-list').innerHTML=Object.keys(CHARTS).map(function(k){return '<button class="chart-list-btn'+(editChart===k?' active':'')+'" onclick="selectEditChart(\''+k+'\')">'+CHART_LABELS[k]+'<span class="cl-sub">'+CHART_SUBS[k]+'</span></button>';}).join('');
+}
+function selectEditChart(k){editChart=k;renderEditChartList();renderEditPanel(k);}
+function renderEditPanel(k){
+  const c=CHARTS[k];
+  const isCombo=(k==='F'||k==='G');
+  const variants=isCombo?[['full','TAP & Part-Time TAP (combined)']]:[['full','Full-time TAP (12+ credits)'],['part','Part-time TAP (3-11 credits)']];
+  let html='<div class="edit-section-title">Editing Chart '+k+'</div><p class="edit-section-sub">'+c.applies+'</p>';
+  variants.forEach(function(v){
+    const type=v[0],label=v[1];
+    const d=c[type];if(!d)return;
+    const hasPace=!!d.pacePercent;
+    const rowKey=hasPace?'pacePercent':'creditsLastTerm';
+    const rowLabel=hasPace?'Completion rate (%)':'Credits last term';
+    const pays=Array.from({length:d.maxPay},function(_,i){return i+1;});
+    html+='<div class="variant-label">'+label+'</div><div style="overflow-x:auto;margin-bottom:1rem"><table class="edit-table"><thead><tr><th style="min-width:140px">Requirement</th>'+pays.map(function(p){return '<th style="min-width:54px">'+ordinal(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Total credits accrued</td>'+pays.map(function(_,i){return '<td><input type="number" step="1" min="0" value="'+d.totalCredits[i]+'" data-chart="'+k+'" data-type="'+type+'" data-row="totalCredits" data-idx="'+i+'" oninput="onEdit(this)"></td>';}).join('')+'</tr><tr><td>Min GPA</td>'+pays.map(function(_,i){return '<td><input type="number" step="0.01" min="0" max="4" value="'+d.gpa[i]+'" data-chart="'+k+'" data-type="'+type+'" data-row="gpa" data-idx="'+i+'" oninput="onEdit(this)"></td>';}).join('')+'</tr><tr><td>'+rowLabel+'</td>'+pays.map(function(_,i){return '<td><input type="number" step="'+(hasPace?'1':'0.5')+'" min="0" '+(hasPace?'max="100"':'')+' value="'+d[rowKey][i]+'" data-chart="'+k+'" data-type="'+type+'" data-row="'+rowKey+'" data-idx="'+i+'" oninput="onEdit(this)"></td>';}).join('')+'</tr></tbody></table></div>';
+  });
+  html+='<div class="save-bar"><button class="save-btn" onclick="saveEdits(\''+k+'\')">Save changes</button><button class="reset-btn" onclick="resetChart(\''+k+'\')">Reset Chart '+k+' to default</button><span class="save-msg" id="smsg-'+k+'">&#10003; Saved!</span></div>';
+  document.getElementById('edit-panel').innerHTML=html;
+}
+function onEdit(input){const d=input.dataset;const val=parseFloat(input.value);if(!isNaN(val))CHARTS[d.chart][d.type][d.row][parseInt(d.idx)]=val;}
+function saveEdits(k){saveCharts();renderQlTable();const msg=document.getElementById('smsg-'+k);msg.classList.add('show');setTimeout(function(){msg.classList.remove('show');},2500);}
+function resetChart(k){if(!confirm('Reset Chart '+k+' to its original default values?\nThis will undo all edits for this chart.'))return;CHARTS[k]=JSON.parse(JSON.stringify(DEFAULT_CHARTS[k]));saveCharts();renderEditPanel(k);renderQlTable();}
+
+/* Finder */
+const state={};
+let selFinder=null;
+function pick(key,val,el){
+  state[key]=val;
+  const group=el.closest('.btn-group');
+  if(group)group.querySelectorAll('.radio-btn').forEach(function(o){o.classList.remove('selected');});
+  el.classList.add('selected');
+
+  // Show/hide questions progressively
+  if(key==='degree'){
+    // Reset downstream
+    delete state.enroll; delete state.access; delete state.seek;
+    document.getElementById('q2-block').style.display='block';
+    document.getElementById('q3-block').style.display='none';
+    document.getElementById('q4-block').style.display='none';
+    document.querySelectorAll('#rg-enroll .radio-btn,#rg-access .radio-btn,#rg-seek .radio-btn').forEach(function(b){b.classList.remove('selected');});
+  }
+  if(key==='enroll'){
+    delete state.access; delete state.seek;
+    document.getElementById('q3-block').style.display='block';
+    document.getElementById('q4-block').style.display='none';
+    document.querySelectorAll('#rg-access .radio-btn,#rg-seek .radio-btn').forEach(function(b){b.classList.remove('selected');});
+  }
+  if(key==='access'){
+    delete state.seek;
+    if(val==='no'){
+      document.getElementById('q4-block').style.display='block';
+      document.querySelectorAll('#rg-seek .radio-btn').forEach(function(b){b.classList.remove('selected');});
+    } else {
+      document.getElementById('q4-block').style.display='none';
+    }
+  }
+
+  selFinder=null;
+  renderFinderResult();
+}
+function getChart(){
+  const degree=state.degree, enroll=state.enroll, access=state.access, seek=state.seek;
+  if(!degree||!enroll||!access) return null;
+  if(access==='yes') return degree==="Bachelor's"?'F':'G';
+  if(!seek) return null;
+  if(seek==='yes') return degree==="Bachelor's"?'B':'C';
+  // seek=no
+  return degree==="Bachelor's"?'D':'E';
+}
+function buildFinderPayBtns(maxPay){
+  let html=Array.from({length:Math.min(maxPay,10)},function(_,i){const p=i+1;return '<button class="pay-btn'+(selFinder===p?' selected':'')+'" onclick="pickFinderPay('+p+',this)">'+ordinal(p)+'</button>';}).join('');
+  for(let p=11;p<=maxPay;p++)html+='<button class="pay-btn'+(selFinder===p?' selected':'')+'" onclick="pickFinderPay('+p+',this)">'+ordinal(p)+'</button>';
+  return html;
+}
+function buildFinderChartTable(chart,tapType){
+  const c=CHARTS[chart];
+  const isCombo=(chart==='F'||chart==='G');
+  const d=isCombo?c.full:(tapType==='part'&&c.part?c.part:c.full);
+  const hasPace=!!d.pacePercent;
+  const pays=Array.from({length:d.maxPay},function(_,i){return i+1;});
+  return '<div class="ql-table-wrap" style="margin-top:1.25rem"><table class="ql-table"><thead><tr><th>Requirement</th>'+pays.map(function(p){return '<th>'+ordinal(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Total credits accrued</td>'+pays.map(function(_,i){return '<td>'+d.totalCredits[i]+'</td>';}).join('')+'</tr><tr><td>Minimum GPA</td>'+pays.map(function(_,i){return '<td>'+(d.gpa[i]===0?'0':d.gpa[i].toFixed(2))+'</td>';}).join('')+'</tr><tr><td>'+(hasPace?'Completion rate':'Credits last term')+'</td>'+pays.map(function(_,i){return '<td>'+(hasPace?d.pacePercent[i]+'%':d.creditsLastTerm[i])+'</td>';}).join('')+'</tr></tbody></table></div>';
+}
+function renderFinderResult(){
+  const ra=document.getElementById('finder-result');
+  const chart=getChart();if(!chart){ra.innerHTML='';return;}
+  const c=CHARTS[chart];const tapType=state.enroll||'full';const data=(chart==='F'||chart==='G')?c.full:(tapType==='part'&&c.part?c.part:c.full);
+  ra.innerHTML='<div class="card-highlight"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap"><span style="font-size:15px;font-weight:600;color:var(--text)">This student uses</span><span class="chart-tag" style="font-size:14px;padding:4px 14px">Chart '+chart+'</span></div><p class="applies-note">'+c.applies+'</p>'+((chart==='F'||chart==='G')?'<p class="applies-note">Charts F &amp; G apply to both TAP types.</p>':'')+buildFinderChartTable(chart,tapType)+'<div class="divider" style="margin-top:1.25rem"></div><div class="row-label" style="margin-bottom:8px">Select a payment to see requirements</div><div class="pay-grid" id="finder-pay-btns">'+buildFinderPayBtns(data.maxPay)+'</div><div class="or-div"><span>or enter points</span></div><div class="pts-row"><div style="flex:1"><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px">Points total</label><input type="number" id="f-pts" placeholder="e.g. 14.5" min="0" max="59.5" step="0.5" oninput="ptsToPaymentFinder()"/></div><button onclick="clearPtsFinder()">Clear</button></div><div id="pay-result" style="margin-top:1.25rem"></div></div>';
+  if(selFinder)showPayResult(selFinder,chart,tapType);
+}
+function pickFinderPay(n,el){selFinder=n;document.querySelectorAll('#finder-pay-btns .pay-btn').forEach(function(b){b.classList.remove('selected');});el.classList.add('selected');const fpts=document.getElementById('f-pts');if(fpts)fpts.value='';showPayResult(n,getChart(),state.enroll||'full');}
+function ptsToPaymentFinder(){const pay=pointsToPayment(document.getElementById('f-pts').value);if(pay){selFinder=pay;document.querySelectorAll('#finder-pay-btns .pay-btn').forEach(function(b,i){b.classList.toggle('selected',i+1===pay);});showPayResult(pay,getChart(),state.enroll||'full');}else{selFinder=null;document.querySelectorAll('#finder-pay-btns .pay-btn').forEach(function(b){b.classList.remove('selected');});const pr=document.getElementById('pay-result');if(pr)pr.innerHTML='';}}
+function clearPtsFinder(){const el=document.getElementById('f-pts');if(el)el.value='';selFinder=null;document.querySelectorAll('#finder-pay-btns .pay-btn').forEach(function(b){b.classList.remove('selected');});const pr=document.getElementById('pay-result');if(pr)pr.innerHTML='';}
+function showPayResult(n,chart,tapType){const pr=document.getElementById('pay-result');if(!pr||!chart)return;const c=CHARTS[chart];const data=(chart==='F'||chart==='G')?c.full:(tapType==='part'&&c.part?c.part:c.full);if(n>data.maxPay){pr.innerHTML='<p style="font-size:13px;color:var(--text2)">Chart '+chart+' only goes up to payment '+data.maxPay+'.</p>';return;}pr.innerHTML=buildMetrics(n-1,data,n);}
+
+/* Points Key Popup */
+function buildPtsKeyContent(){
+  const popup=document.getElementById('pts-key-popup');
+  let html='<h4>Points \u2192 Payment Key</h4>';
+  PAYMENT_POINTS.forEach(function(r){html+='<div class="pts-key-row"><span class="pts-key-pay">Payment '+r.pay+'</span><span class="pts-key-range">'+r.min+' \u2013 '+r.max+' pts</span></div>';});
+  popup.innerHTML=html;
+}
+function togglePtsKey(){const p=document.getElementById('pts-key-popup');p.classList.toggle('open');if(p.classList.contains('open'))buildPtsKeyContent();}
+
+
+/* Customize */
+const DEFAULTS_CUSTOMIZE={accent:'#1a4f3a',bg:'#f5f4f0',surface:'#ffffff',text:'#1a1a18',font:"'DM Sans', sans-serif",fontsize:'15px',title:'TAP/SAP Eligibility Tool',subtitle:'Financial aid academic progress requirements'};
+function loadCustomize(){try{const s=localStorage.getItem('tap_customize_v1');if(s)return Object.assign({},DEFAULTS_CUSTOMIZE,JSON.parse(s));}catch(e){}return Object.assign({},DEFAULTS_CUSTOMIZE);}
+function saveCustomizeData(obj){localStorage.setItem('tap_customize_v1',JSON.stringify(obj));}
+function syncColorText(colorId,textId){document.getElementById(textId).value=document.getElementById(colorId).value;applyCustomize();}
+function syncColorPicker(textId,colorId){const v=document.getElementById(textId).value;if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById(colorId).value=v;applyCustomize();}}
+function applyCustomize(){
+  const r=document.documentElement.style;
+  const accent=document.getElementById('c-accent').value;
+  const bg=document.getElementById('c-bg').value;
+  const surface=document.getElementById('c-surface').value;
+  const text=document.getElementById('c-text').value;
+  const font=document.getElementById('c-font').value;
+  const fontsize=document.getElementById('c-fontsize').value;
+  const title=document.getElementById('c-title').value;
+  const subtitle=document.getElementById('c-subtitle').value;
+  r.setProperty('--accent',accent);
+  r.setProperty('--accent-bg',accent+'22');
+  r.setProperty('--accent-text',accent);
+  r.setProperty('--bg',bg);
+  r.setProperty('--surface',surface);
+  r.setProperty('--text',text);
+  document.body.style.fontFamily=font;
+  document.body.style.fontSize=fontsize;
+  const h1=document.querySelector('header h1');if(h1)h1.textContent=title;
+  const hp=document.querySelector('header p');if(hp)hp.textContent=subtitle;
+  saveCustomizeData({accent,bg,surface,text,font,fontsize,title,subtitle});
+}
+function resetCustomize(){
+  const d=DEFAULTS_CUSTOMIZE;
+  document.getElementById('c-accent').value=d.accent;document.getElementById('ct-accent').value=d.accent;
+  document.getElementById('c-bg').value=d.bg;document.getElementById('ct-bg').value=d.bg;
+  document.getElementById('c-surface').value=d.surface;document.getElementById('ct-surface').value=d.surface;
+  document.getElementById('c-text').value=d.text;document.getElementById('ct-text').value=d.text;
+  document.getElementById('c-font').value=d.font;
+  document.getElementById('c-fontsize').value=d.fontsize;
+  document.getElementById('c-title').value=d.title;
+  document.getElementById('c-subtitle').value=d.subtitle;
+  localStorage.removeItem('tap_customize_v1');
+  const r=document.documentElement.style;
+  ['--accent','--accent-bg','--accent-text','--bg','--surface','--text'].forEach(function(v){r.removeProperty(v);});
+  document.body.style.fontFamily='';document.body.style.fontSize='';
+  const h1=document.querySelector('header h1');if(h1)h1.textContent=d.title;
+  const hp=document.querySelector('header p');if(hp)hp.textContent=d.subtitle;
+}
+(function(){
+  const s=loadCustomize();
+  if(JSON.stringify(s)===JSON.stringify(DEFAULTS_CUSTOMIZE))return;
+  document.getElementById('c-accent').value=s.accent;document.getElementById('ct-accent').value=s.accent;
+  document.getElementById('c-bg').value=s.bg;document.getElementById('ct-bg').value=s.bg;
+  document.getElementById('c-surface').value=s.surface;document.getElementById('ct-surface').value=s.surface;
+  document.getElementById('c-text').value=s.text;document.getElementById('ct-text').value=s.text;
+  document.getElementById('c-font').value=s.font;
+  document.getElementById('c-fontsize').value=s.fontsize;
+  document.getElementById('c-title').value=s.title;
+  document.getElementById('c-subtitle').value=s.subtitle;
+  applyCustomize();
+})();
+</script>
+</body>
+</html>
